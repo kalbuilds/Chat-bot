@@ -41,6 +41,14 @@
   border-bottom-right-radius: 4px;
 }
 
+.ai-message {
+  align-self: flex-start;
+  background-color: white;
+  color: #1f2937;
+  border: 1px solid #e5e7eb;
+  border-bottom-left-radius: 4px;
+}
+
 .chat-AI {
   background-color: #e5e7eb;
   width: 100%;
