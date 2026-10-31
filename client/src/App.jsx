@@ -39,7 +39,10 @@ function ChatBot() {
             type="text" name="" id=""
             placeholder='What is in your mind?'
             onChange={(e) => setInput(e.target.value)} />
+          <button>Send</button>
         </form>
+
+
 
 
       </div>
