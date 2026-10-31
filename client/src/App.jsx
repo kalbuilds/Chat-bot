@@ -1,5 +1,11 @@
 import { useState } from 'react';
 import './App.css';
+const messages = [
+  {
+    messages: "Selam endet neh kal"
+
+  }
+]
 
 function App() {
   return (
@@ -25,9 +31,22 @@ function ChatBot() {
     <div className='chat-bot'>
       <div className="messages">
         {message !== '' && (
-          <div className="message user-message">
-            {message}
-          </div>
+
+          <>
+            <div className="message user-message">
+              {message}
+            </div>
+
+            <div className="message ai-message">
+
+              {messages.map((answer, index) => {
+                return <div key={index} >{answer.messages}</div>
+              })}
+
+            </div>
+
+          </>
+
         )}
       </div>
 
