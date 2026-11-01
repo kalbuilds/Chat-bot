@@ -1,74 +1,124 @@
-import { useState } from 'react';
-import './App.css';
-const messages = [
-  {
-    messages: "Selam endet neh kal"
 
-  }
-]
+import { useState } from "react";
+import "./App.css";
 
 function App() {
-  return (
-    <>
-      <ChatBot />
-    </>
-  )
-}
+  const [messages, setMessages] = useState([
+    {
+      role: "model",
+      text: "Selam! Endet neh? I'm your AI assistant. Ask me anything!",
+    },
+  ]);
 
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
 
-function ChatBot() {
-  const [message, setMessages] = useState('');
-  const [input, setInput] = useState('');
-
-  function ReceiveUserInput(e) {
+  async function receiveUserInput(e) {
     e.preventDefault();
-    setMessages(input);
-    setInput('')
 
+    const text = input.trim();
+
+    if (!text || loading) return;
+
+    // Keep a snapshot of the previous conversation.
+    const history = messages
+      .filter((item) => ["user", "model"].includes(item.role))
+      .slice(-10)
+      .map(({ role, text }) => ({ role, text }));
+
+    // Display the user's message immediately.
+    setMessages((previous) => [
+      ...previous,
+      { role: "user", text },
+    ]);
+
+    setInput("");
+    setLoading(true);
+
+    try {
+      const response = await fetch(
+        "http://localhost:3000/api/chat",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            message: text,
+            history,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Request failed.");
+      }
+
+      setMessages((previous) => [
+        ...previous,
+        {
+          role: "model",
+          text: data.reply,
+        },
+      ]);
+    } catch (error) {
+      setMessages((previous) => [
+        ...previous,
+        {
+          role: "model",
+          text: `Sorry, something went wrong: ${error.message}`,
+        },
+      ]);
+    } finally {
+      setLoading(false);
+    }
   }
+
   return (
-
-    <div className='chat-bot'>
+    <div className="chat-bot">
       <div className="messages">
-        {message !== '' && (
+        {messages.map((item, index) => (
+          <div
+            key={index}
+            className={`message ${item.role === "user"
+              ? "user-message"
+              : "bot-message"
+              }`}
+          >
+            {item.text}
+          </div>
+        ))}
 
-          <>
-            <div className="message user-message">
-              {message}
-            </div>
-
-            <div className="message ai-message">
-
-              {messages.map((answer, index) => {
-                return <div key={index} >{answer.messages}</div>
-              })}
-
-            </div>
-
-          </>
-
+        {loading && (
+          <div className="message bot-message">
+            Gemini is thinking...
+          </div>
         )}
       </div>
 
-      <div className='chat-AI'>
-        <form action="" onSubmit={ReceiveUserInput} >
+      <div className="chat-AI">
+        <form onSubmit={receiveUserInput}>
           <input
+            className="input"
+            type="text"
+            placeholder="What is in your mind?"
             value={input}
-            className='input'
-            type="text" name="" id=""
-            placeholder='What is in your mind?'
-            onChange={(e) => setInput(e.target.value)} />
-          <button>Send</button>
+            onChange={(e) => setInput(e.target.value)}
+            disabled={loading}
+          />
+
+          <button
+            type="submit"
+            disabled={loading || !input.trim()}
+          >
+            {loading ? "Thinking..." : "Send"}
+          </button>
         </form>
-
-
-
-
       </div>
-
     </div>
-
-  )
+  );
 }
 
-export default App
+export default App;
