@@ -42,6 +42,7 @@ const sleep = (ms) =>
     new Promise((resolve) => setTimeout(resolve, ms));
 
 // Generate a Gemini response with retries for temporary errors.
+
 async function generateWithRetry(contents) {
     const delays = [1000, 2000, 4000];
 
@@ -57,19 +58,27 @@ async function generateWithRetry(contents) {
                 },
             });
         } catch (error) {
-            const message = error.message || "";
+            const status = error.status || error.statusCode;
+            const code = error.code || error.cause?.code;
+            const message = String(error.message || "");
 
             const isTemporary =
-                message.includes("503") ||
-                message.includes("UNAVAILABLE");
+                [408, 429, 500, 502, 503, 504].includes(status) ||
+                [
+                    "UND_ERR_CONNECT_TIMEOUT",
+                    "ETIMEDOUT",
+                    "ECONNRESET",
+                    "ECONNREFUSED",
+                    "EAI_AGAIN",
+                ].includes(code) ||
+                /UNAVAILABLE/i.test(message);
 
-            // Retry temporary availability errors only.
             if (!isTemporary || attempt >= delays.length) {
                 throw error;
             }
 
             console.log(
-                `Gemini is temporarily unavailable. Retrying in ${delays[attempt] / 1000
+                `Gemini temporarily unavailable. Retrying in ${delays[attempt] / 1000
                 } seconds...`
             );
 
@@ -77,6 +86,7 @@ async function generateWithRetry(contents) {
         }
     }
 }
+
 
 // Chat endpoint.
 app.post("/api/chat", async (req, res) => {
@@ -142,11 +152,19 @@ app.post("/api/chat", async (req, res) => {
         // Log detailed errors in the backend terminal.
         console.error("Gemini API error:", error);
 
-        const message = error.message || "";
+        const status = error.status || error.statusCode;
+        const code = error.code || error.cause?.code;
 
         const isTemporary =
-            message.includes("503") ||
-            message.includes("UNAVAILABLE");
+            [408, 429, 500, 502, 503, 504].includes(status) ||
+            [
+                "UND_ERR_CONNECT_TIMEOUT",
+                "ETIMEDOUT",
+                "ECONNRESET",
+                "ECONNREFUSED",
+                "EAI_AGAIN",
+            ].includes(code) ||
+            /UNAVAILABLE/i.test(error.message || "");
 
         if (isTemporary) {
             return res.status(503).json({
