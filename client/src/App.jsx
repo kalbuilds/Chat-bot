@@ -93,7 +93,7 @@ function App() {
 
         {loading && (
           <div className="message bot-message">
-            Gemini is thinking...
+            Kal's AI is thinking...
           </div>
         )}
       </div>
