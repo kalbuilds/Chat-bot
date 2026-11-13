@@ -11,7 +11,7 @@ const PORT = process.env.PORT || 3000;
 
 if (!process.env.GEMINI_API_KEY) {
     throw new Error(
-        "GEMINI_API_KEY is missing. Check your backend .env file."
+        "Kal's AI_KEY is missing. Check your backend .env file."
     );
 }
 
@@ -33,7 +33,7 @@ app.use(express.json({ limit: "100kb" }));
 // Basic health check.
 app.get("/", (req, res) => {
     res.json({
-        message: "Gemini chatbot backend is running!",
+        message: "Kal's AI chatbot backend is running!",
     });
 });
 
@@ -78,7 +78,7 @@ async function generateWithRetry(contents) {
             }
 
             console.log(
-                `Gemini temporarily unavailable. Retrying in ${delays[attempt] / 1000
+                `Kal's AI temporarily unavailable. Retrying in ${delays[attempt] / 1000
                 } seconds...`
             );
 
@@ -169,7 +169,7 @@ app.post("/api/chat", async (req, res) => {
         if (isTemporary) {
             return res.status(503).json({
                 error:
-                    "Gemini is temporarily busy. Please try again in a little while.",
+                    "Kal's AI is temporarily busy. Please try again in a little while.",
             });
         }
 
